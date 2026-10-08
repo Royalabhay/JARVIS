@@ -46,8 +46,11 @@ To disconnect, clear the token in Settings, save, and close the companion window
 - “Show desktop” / “डेस्कटॉप दिखाओ”
 - “Volume up” / “आवाज़ बढ़ाओ”
 - “Lock computer” — Sara asks for confirmation first.
+- “Open Gmail and then show desktop” — Sara runs supported steps in order.
+- “Confirm” / “haan” or “cancel” / “nahi” — answer an approval prompt by voice.
+- “Sara, stop listening” — pause the voice session.
 
-Use the microphone button for a single command. Sara does not listen in the background. Typed commands are always available.
+Tap the microphone once to start a visible hands-free voice session. After that, give commands and answer approvals by voice; say “stop listening” to pause. Sara does not listen in the background before you start a session. Typed commands and on-screen confirmations remain available.
 
 ## Speech privacy
 

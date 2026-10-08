@@ -3,11 +3,12 @@
 ## Current working model
 
 ```text
-User taps microphone / types / picks a quick action
+User taps microphone once to start a visible voice session
                     ↓
 Responsive Chrome side panel
-      ├─ speech recognition + typed command parser
-      ├─ visible approval card for closing a tab or locking Windows
+      ├─ continuous speech recognition until spoken stop command
+      ├─ English/Hindi command parser; optional “Sara” wake prefix
+      ├─ multi-step plan queue; voice yes/no confirmation for guarded actions
       └─ spoken response + recent activity
           ↓ typed actions only
 MV3 service worker
@@ -23,7 +24,7 @@ The popup remains useful as a compact surface, while the Chrome Side Panel API g
 
 ## Action model
 
-The voice recognizer returns text. A deterministic command parser maps supported phrases to a small typed action set. The service worker checks the action type and validates names before use. The Windows companion accepts only the same named actions, ignores request-supplied paths and executable strings, and never passes user text to a shell.
+The voice recognizer returns text while the user-started session is visibly active. A deterministic command parser maps supported phrases to a small typed action set. “Then” and Hindi equivalents queue multiple supported steps in order. The service worker checks the action type and validates names before use. The Windows companion accepts only the same named actions, ignores request-supplied paths and executable strings, and never passes user text to a shell. The user can say “confirm” or “cancel” to resolve a high-impact action; “stop listening” halts the session.
 
 ### Supported browser actions
 
