@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sara Voice Assistant</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="brand-icon">S</div><div><strong>Sara</strong><span>VOICE DESKTOP ASSISTANT</span></div></div>
+      <div class="status"><i></i> LOCAL</div>
+    </header>
+    <section class="hero">
+      <div class="eyebrow">YOUR VOICE, YOUR CONTROL</div>
+      <h1>What should I<br><em>take care of?</em></h1>
+      <p>Speak naturally in Hindi or English.<br>Browser actions stay under your control.</p>
+      <div class="voice-wrap"><button id="mic" class="mic" aria-label="Start voice command"><span class="mic-glyph">●</span><span class="mic-ring"></span></button><small id="mic-label">TAP TO SPEAK</small></div>
+      <div class="command-box"><span class="spark">✳</span><input id="command" type="text" placeholder="Or type a command…" autocomplete="off"><button id="send" aria-label="Run command">↗</button></div>
+      <div class="language"><span>VOICE LANGUAGE</span><select id="language"><option value="en-IN">English · India</option><option value="hi-IN">हिन्दी</option></select></div>
+    </section>
+    <section id="approval" class="approval hidden"><div><b>Confirm action</b><p id="approval-text"></p></div><div class="approval-actions"><button id="cancel" class="secondary">Cancel</button><button id="confirm" class="danger">Close tab</button></div></section>
+    <section class="activity">
+      <div class="section-heading"><h2>Activity</h2><button id="clear" class="clear">Clear</button></div>
+      <div id="log" class="log"><div class="empty"><span>✳</span><p>Your recent actions will appear here.</p></div></div>
+    </section>
+    <footer><span>Built for your computer. Designed with guardrails.</span><span class="version">V 0.1</span></footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
