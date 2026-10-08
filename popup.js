@@ -39,53 +39,24 @@ function addLog(title, detail, icon = '↗') {
   const time = document.createElement('time'); time.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   row.append(glyph, copy, time); log.prepend(row);
   while (log.children.length > 15) log.lastElementChild.remove();
+  return row;
 }
 
 function normalize(value) {
   return value.trim().toLocaleLowerCase().replace(/[.!?।]+$/u,'').replace(/\s+/g,' ');
 }
 
-const SITE_NAMES = 'youtube|google|gmail|whatsapp|instagram|linkedin|github|chatgpt';
-function parseCommand(raw) {
-  const text = normalize(raw);
-  let match = text.match(new RegExp(`^(?:open|kholo|khol do|launch)\\s+(${SITE_NAMES})$`,'i'));
-  if (match) return {type:'open-site',site:match[1].toLowerCase()};
-  match = text.match(new RegExp(`^(${SITE_NAMES})\\s+(?:kholo|khol do)$`,'i'));
-  if (match) return {type:'open-site',site:match[1].toLowerCase()};
-  match = text.match(/^(?:open|kholo|khol do|launch)\s+(notepad|calculator|calc|explorer|file explorer)$/i);
-  if (match) {
-    const app = match[1].toLowerCase().replace(/^file\s+/,'').replace(/^calc$/,'calculator');
-    return {type:'desktop',action:`open-${app}`};
-  }
-  match = text.match(/^(?:search(?:\s+for)?|google|dhundo|dhoondo|search karo|खोजो|ढूंढो)\s+(.+)/iu);
-  if (match) return {type:'search',query:match[1].slice(0,240)};
-  if (/^(?:next tab|agla tab|अगला टैब|अगला टॅब)$/.test(text)) return {type:'move-tab',direction:1};
-  if (/^(?:previous tab|pichhla tab|पिछला टैब)$/.test(text)) return {type:'move-tab',direction:-1};
-  if (/^(?:reload|refresh|tab reload karo|page refresh karo|पेज रीलोड करो)$/.test(text)) return {type:'reload'};
-  if (/^(?:close tab|tab band karo|tab close karo|टैब बंद करो)$/.test(text)) return {type:'confirm-close'};
-  if (/^(?:show desktop|desktop dikhao|desktop dikha do|डेस्कटॉप दिखाओ)$/.test(text)) return {type:'desktop',action:'show-desktop'};
-  if (/^(?:switch window|switch app|change window|window badlo|app badlo|window switch karo)$/.test(text)) return {type:'desktop',action:'switch-window'};
-  if (/^(?:volume up|sound badhao|awaaz badhao|आवाज़ बढ़ाओ)$/.test(text)) return {type:'desktop',action:'volume-up'};
-  if (/^(?:volume down|sound kam karo|awaaz kam karo|आवाज़ कम करो)$/.test(text)) return {type:'desktop',action:'volume-down'};
-  if (/^(?:mute|volume mute|awaaz band karo|म्यूट करो)$/.test(text)) return {type:'desktop',action:'volume-mute'};
-  if (/^(?:take screenshot|screenshot lo|screenshot|स्क्रीनशॉट लो)$/.test(text)) return {type:'desktop',action:'screenshot'};
-  if (/^(?:open task manager|task manager kholo|task manager खोलो)$/.test(text)) return {type:'desktop',action:'task-manager'};
-  if (/^(?:lock computer|lock pc|computer lock karo|pc lock karo|कंप्यूटर लॉक करो)$/.test(text)) return {type:'confirm-lock'};
-  if (/^(?:list tabs|show tabs|open tabs dikhao|खुले टैब दिखाओ)$/.test(text)) return {type:'list-tabs'};
-  return null;
-}
-
-function splitPlan(raw) {
-  return raw.split(/\s+(?:and then|then|phir|aur phir|uske baad|फिर)\s+/iu).map((part) => part.trim()).filter(Boolean);
-}
-
 function showApproval(action) {
-  $('approval-text').textContent = action.type === 'confirm-lock'
-    ? 'Lock this Windows computer now? Say “confirm” to continue or “cancel” to stop.'
-    : 'Close your current Chrome tab? Say “confirm” to continue or “cancel” to stop.';
-  $('confirm').textContent = action.type === 'confirm-lock' ? 'Confirm lock' : 'Confirm close';
+  const descriptions = {
+    'confirm-lock':['Lock this Windows computer now?', 'Confirm lock'],
+    'close-confirm':['Close the active Chrome tab?', 'Confirm close'],
+    'ui-activate':[`Activate the ${action.role.replace('Control','').toLowerCase()} named “${action.name}” in the foreground app?`, 'Activate control']
+  };
+  const [description, button] = descriptions[action.type] || ['Confirm this action?', 'Confirm'];
+  $('approval-text').textContent = `${description} Say “confirm” to continue or “cancel” to stop.`;
+  $('confirm').textContent = button;
   $('approval').classList.remove('hidden');
-  if (listening) say(action.type === 'confirm-lock' ? 'Say confirm to lock the computer, or cancel.' : 'Say confirm to close this tab, or cancel.');
+  if (listening) say(action.type === 'confirm-lock' ? 'Say confirm to lock the computer, or cancel.' : action.type === 'close-confirm' ? 'Say confirm to close this tab, or cancel.' : `Say confirm to activate ${action.name}, or cancel.`);
 }
 
 async function sendAction(action, announce = true) {
@@ -100,9 +71,26 @@ async function sendAction(action, announce = true) {
         if (listening && announce) say(result?.error || 'Please check Sara settings.');
         resolve(false); return;
       }
-      addLog(result.title || 'Done',result.detail || 'Action completed.',result.icon || '✓');
+      let detail = result.detail || 'Action completed.';
+      if (Array.isArray(result.results)) detail = result.results.length ? result.results.map((item) => `${item.name} · ${item.path}`).join(' | ') : 'No matching files found in the selected folders.';
+      else if (Array.isArray(result.applications)) detail = result.applications.length ? `${result.applications.slice(0,12).map((item) => item.name).join(', ')}${result.applications.length > 12 ? ` · ${result.applications.length - 12} more` : ''}` : 'No Start Menu shortcuts were found.';
+      else if (Array.isArray(result.windows)) detail = result.windows.length ? `${result.windows.slice(0,10).map((item) => `${item.title}${item.active ? ' (active)' : ''}`).join(' | ')}${result.windows.length > 10 ? ` · ${result.windows.length - 10} more` : ''}` : 'No open windows were found.';
+      else if (Array.isArray(result.controls)) detail = `${result.controls.slice(0,24).map((item) => `${item.role}: ${item.name || '(unnamed)'}`).join(' | ')}${result.controls.length > 24 ? ' · more controls omitted' : ''}`;
+      else if (result.foregroundWindow) detail = `Active window: ${result.foregroundWindow.title}`;
+      const row = addLog(result.title || (result.results ? 'File search results' : 'Done'),detail,result.icon || '✓');
+      if (Array.isArray(result.results) && result.results.length) {
+        const choices = document.createElement('div'); choices.className = 'result-actions';
+        for (const file of result.results) {
+          const item = document.createElement('span'); item.className = 'result-choice';
+          const name = document.createElement('b'); name.textContent = file.name;
+          const open = document.createElement('button'); open.textContent = 'Open'; open.addEventListener('click',()=>sendAction({version:'1',type:'file-open',resultId:file.id}));
+          const reveal = document.createElement('button'); reveal.textContent = 'Show location'; reveal.addEventListener('click',()=>sendAction({version:'1',type:'file-reveal',resultId:file.id}));
+          item.append(name,open,reveal); choices.append(item);
+        }
+        row.append(choices);
+      }
       if (listening && announce) say(result.spoken || result.title || 'Done.');
-      if (action.type === 'confirm-close' || action.type === 'switch-tab' || action.type === 'list-tabs') refreshTabs();
+      if (action.type === 'close-confirmed' || action.type === 'switch-tab' || action.type === 'switch-tab-query' || action.type === 'list-tabs') refreshTabs();
       resolve(true);
     });
   });
@@ -112,10 +100,15 @@ async function continuePlan() {
   const multiStep = pendingPlan.length > 1;
   while (planIndex < pendingPlan.length) {
     const action = pendingPlan[planIndex];
-    if (action.type === 'confirm-close' || action.type === 'confirm-lock') { showApproval(action); return; }
+    if (action.type === 'close-confirm' || action.type === 'confirm-lock' || action.type === 'ui-activate' && action.confirmed !== true) { showApproval(action); return; }
     planIndex += 1;
-    if (action.type === 'list-tabs') { refreshTabs(); addLog('Open tabs','Updated the list of tabs in this window.','▤'); continue; }
-    await sendAction(action,!multiStep);
+    if (action.type === 'list-tabs') { refreshTabs(); addLog('Open tabs','Updated tabs across normal Chrome windows.','▤'); continue; }
+    const ok = await sendAction(action,!multiStep);
+    if (!ok) {
+      addLog('Workflow stopped','Sara stopped because a step failed. Later steps were not run.','!');
+      pendingPlan = []; planIndex = 0;
+      return;
+    }
   }
   pendingPlan = []; planIndex = 0;
   if (listening && multiStep) say('Done. I completed those commands.');
@@ -123,7 +116,7 @@ async function continuePlan() {
 
 function resolveApproval(approved) {
   const action = pendingPlan[planIndex];
-  if (!action || (action.type !== 'confirm-lock' && action.type !== 'confirm-close')) return;
+  if (!action || !['confirm-lock','close-confirm','ui-activate'].includes(action.type)) return;
   $('approval').classList.add('hidden');
   if (!approved) {
     pendingPlan = []; planIndex = 0;
@@ -132,7 +125,9 @@ function resolveApproval(approved) {
     return;
   }
   planIndex += 1;
-  const actual = action.type === 'confirm-lock' ? {type:'desktop',action:'lock-computer'} : {type:'close-confirmed'};
+  const actual = action.type === 'confirm-lock' ? {version:'1',type:'desktop',action:'lock-computer'}
+    : action.type === 'close-confirm' ? {version:'1',type:'close-confirmed'}
+    : {...action,confirmed:true};
   sendAction(actual,pendingPlan.length===1).then((ok) => { if (ok) continuePlan(); else { pendingPlan=[]; planIndex=0; } });
 }
 
@@ -157,16 +152,23 @@ function handleVoiceTranscript(raw) {
 function runCommand(raw, fromVoice = false) {
   if (!raw.trim()) return;
   $('command').value = raw;
-  if (pendingPlan.length && (pendingPlan[planIndex]?.type === 'confirm-lock' || pendingPlan[planIndex]?.type === 'confirm-close')) {
+  if (pendingPlan.length && ['confirm-lock','close-confirm','ui-activate'].includes(pendingPlan[planIndex]?.type)) {
     addLog('Waiting for approval','Say “confirm” or “cancel” before another command.','!');
     if (fromVoice) say('Please say confirm or cancel first.');
     return;
   }
-  const parts = splitPlan(raw);
-  const actions = parts.map(parseCommand);
+  const planner = window.SaraPlanner;
+  if (!planner) { addLog('Assistant unavailable','Reload Sara to load the command planner.','!'); return; }
+  const parts = planner.splitPlan(raw);
+  const actions = parts.map(planner.parseCommand).map((action) => action && ({version:'1',...action}));
   if (actions.some((action) => !action)) {
     addLog('I didn’t catch that','Try “Sara, open Gmail”, “next tab”, or “volume up”.','…');
     if (fromVoice) say('Sorry, I did not understand. Try a supported command.');
+    return;
+  }
+  if (actions.some((action) => !window.SaraActionSchema?.valid(action))) {
+    addLog('Command needs details','Use a supported action with a clear app, tab, or file name.','!');
+    if (fromVoice) say('Please give me a more specific app, tab, or file name.');
     return;
   }
   pendingPlan = actions; planIndex = 0;
@@ -182,7 +184,7 @@ function setConnection(online,label) {
 
 function renderTabs(tabs) {
   const list = $('tabs-list'); $('tab-count').textContent = String(tabs.length);
-  if (!tabs.length) { list.innerHTML = '<div class="empty-state"><span class="empty-icon">▤</span><p>No browser tabs found in this window.</p></div>'; return; }
+  if (!tabs.length) { list.innerHTML = '<div class="empty-state"><span class="empty-icon">▤</span><p>No tabs found in normal Chrome windows.</p></div>'; return; }
   list.replaceChildren();
   for (const tab of tabs.slice(0,20)) {
     const button = document.createElement('button'); button.className='tab-row'; button.dataset.tabId=String(tab.id);
@@ -193,7 +195,7 @@ function renderTabs(tabs) {
     try { domain.textContent=new URL(tab.url||'').hostname||'Chrome page'; } catch { domain.textContent='Chrome page'; }
     copy.append(title,domain);
     const arrow=document.createElement('span'); arrow.className='tab-open'; arrow.textContent=tab.active?'✓':'↗';
-    button.append(icon,copy,arrow); button.addEventListener('click',()=>sendAction({type:'switch-tab',tabId:tab.id})); list.append(button);
+    button.append(icon,copy,arrow); button.addEventListener('click',()=>sendAction({version:'1',type:'switch-tab',tabId:tab.id,windowId:tab.windowId})); list.append(button);
   }
 }
 

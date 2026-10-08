@@ -17,9 +17,27 @@ $('show-token').addEventListener('click', () => {
 });
 $('save').addEventListener('click', () => {
   const token = $('token').value.trim();
-  const saveValues = (permissionGranted) => {
+  const saveValues = async (permissionGranted) => {
     chrome.storage.local.set({token,language:$('language').value,voiceReply:$('voice-reply').checked}, () => {
-      $('status').textContent = !token ? 'Desktop token removed.' : permissionGranted ? 'Connected. Reopen Sara to check status.' : 'Token saved; allow local connection to use desktop actions.';
+      if (!token) {
+        $('status').textContent = 'Desktop token removed.';
+        return;
+      }
+      if (!permissionGranted) {
+        $('status').textContent = 'Token saved. Allow Sara’s local connection permission to use Windows actions.';
+        return;
+      }
+      $('status').textContent = 'Checking the Windows companion…';
+      fetch('http://127.0.0.1:43821/v1/health', {
+        headers:{'X-Sara-Token':token}, cache:'no-store', signal:AbortSignal.timeout(4000)
+      }).then(async (response) => {
+        const result = await response.json();
+        $('status').textContent = response.ok && result.ok
+          ? 'Connected. Reopen Sara; desktop actions are ready.'
+          : result.error || 'Sara could not connect. Check the companion token.';
+      }).catch(() => {
+        $('status').textContent = 'Token saved. Start run_agent.bat, allow any Chrome local-network prompt, then save again.';
+      });
     });
   };
   if (token) {

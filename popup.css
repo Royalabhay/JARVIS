@@ -79,6 +79,11 @@ h1 em { font:italic 500 1em Georgia,serif; color:var(--green); letter-spacing:-.
 .empty-state.compact { min-height:42px }
 .log { max-height:190px; overflow:auto }
 .log-row { display:grid; grid-template-columns:27px 1fr auto; align-items:center; gap:9px; padding:8px 0; border-bottom:1px solid #252b25 }
+.result-actions { grid-column:2 / 4; display:flex; flex-wrap:wrap; gap:6px; min-width:0 }
+.result-choice { display:flex; align-items:center; gap:5px; max-width:100%; border:1px solid #303930; border-radius:7px; padding:4px 6px; color:#cfd7ca; font-size:9px }
+.result-choice b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px; font-weight:550 }
+.result-choice button { border:0; border-radius:5px; background:#303930; color:#d9e2d0; padding:4px 6px; font-size:8px; cursor:pointer }
+.result-choice button:first-of-type { background:var(--green); color:#17200f }
 .log-icon { width:25px; height:25px; display:grid; place-items:center; border-radius:8px; background:var(--green-soft); color:var(--green); font-size:11px }
 .log-copy { min-width:0 }.log-copy b,.log-copy small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }.log-copy b { font-size:10px; font-weight:550 }.log-copy small { margin-top:3px; color:var(--muted); font-size:9px }
 .log-row time { color:#748075; font:8px Consolas,monospace }
