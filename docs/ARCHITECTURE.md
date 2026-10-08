@@ -1,78 +1,65 @@
-# Architecture: voice-controlled desktop assistant
+# Sara Voice Assistant: architecture and working model
 
-## Working model today
-
-The current MVP is a Chrome Manifest V3 extension:
+## Current working model
 
 ```text
-Microphone / typed command
-        ↓
-Popup UI (SpeechRecognition + command parser)
-        ↓ fixed, validated action messages
-Service worker (site allowlist + Chrome tabs API)
-        ↓
-Chrome tabs in the current window
-```
-
-The popup owns language selection, transcript, and confirmation prompts. It turns only known phrases into structured actions. The service worker revalidates every action and performs only browser operations in the allowlist. It never evaluates generated JavaScript or shell text. Tab closure is gated by a second explicit click.
-
-## Full-computer target design
-
-```text
-┌────────────────────┐
-│ Desktop UI / hotkey │  Push-to-talk, transcript, stop button, approval cards
-└─────────┬──────────┘
-          ↓
-┌────────────────────┐
-│ Voice gateway      │  Speech-to-text; Hindi/English locale; optional wake phrase
-└─────────┬──────────┘
-          ↓
-┌────────────────────┐
-│ Intent planner     │  Converts request to typed action plan; no direct tool access
-└─────────┬──────────┘
-          ↓
-┌────────────────────┐
-│ Policy + approvals │  Risk tiers, target preview, scope, timeout, cancellation
-└──────┬─────────────┘
-       ├───────────────┐
-       ↓               ↓
-┌───────────────┐  ┌────────────────────┐
-│ Chrome bridge │  │ Local desktop agent│
-│ Extension API │  │ UI Automation APIs │
-└──────┬────────┘  └─────────┬──────────┘
-       └────────────┬────────┘
+User taps microphone / types / picks a quick action
                     ↓
-             Audit log + result
+Responsive Chrome side panel
+      ├─ speech recognition + typed command parser
+      ├─ visible approval card for closing a tab or locking Windows
+      └─ spoken response + recent activity
+          ↓ typed actions only
+MV3 service worker
+      ├─ Chrome tabs API → open sites, search, switch/reload/close tabs
+      └─ optional 127.0.0.1 companion connection
+                    ↓ random token + extension-origin check
+Python Windows companion (visible console, user-started)
+      ├─ fixed app-launch list
+      └─ fixed Windows shortcuts / volume keys / lock
 ```
 
-### Components
+The popup remains useful as a compact surface, while the Chrome Side Panel API gives Sara a persistent wider workspace when the user opens it from the toolbar. Responsive styles adapt the workspace to the available width and to reduced-motion settings.
 
-1. **Desktop shell**: Windows-first tray app with push-to-talk, visible listening state, emergency stop, and settings. Use a signed native app (for example Tauri) as the long-running process.
-2. **Speech layer**: Stream microphone audio only while listening. Support a replaceable speech provider, Hindi (`hi-IN`) and Indian English (`en-IN`), transcript correction, and a typed fallback. Store no raw audio by default.
-3. **Planner**: Produce a JSON plan from an intent catalog, such as `open_app`, `open_url`, `switch_window`, `browser_search`, or `click_accessible_element`. The model suggests; it does not execute arbitrary code.
-4. **Policy broker**: Validate every plan against a locally defined schema and per-action policy. Require preview + confirmation for sending messages, submitting forms, payments, deleting files, closing many tabs, installing software, or changing settings. Refuse credential entry, security-control bypass, and unrestricted shell execution.
-5. **Chrome extension**: Own browser tab metadata and approved navigation/actions through Chrome's extension APIs. Add content-script accessibility actions only for the active, user-approved tab and only after showing the target.
-6. **Native messaging host**: A locally installed, signed host registered with Chrome. Use a versioned message protocol, validate sender origin, bind the host to the extension ID, and expose only named methods. Never accept arbitrary paths, commands, or code from the browser.
-7. **Desktop adapter**: Use Windows UI Automation (accessibility tree first; coordinate input only as a fallback), process launching for explicitly allowlisted apps, and a user-visible foreground window. Add narrow per-capability toggles.
-8. **Audit and recovery**: Record intent, planned action, user approval, result, and undo option. Redact sensitive fields; keep logs local and configurable. Every long action must support cancellation and a timeout.
+## Action model
 
-## Trust boundaries and guardrails
+The voice recognizer returns text. A deterministic command parser maps supported phrases to a small typed action set. The service worker checks the action type and validates names before use. The Windows companion accepts only the same named actions, ignores request-supplied paths and executable strings, and never passes user text to a shell.
 
-- A web page can contain hostile text. Treat page content as data, never as instructions to the planner.
-- The planner has no raw OS, filesystem, browser-debugging, or network tool. It emits a typed plan consumed by the local policy broker.
-- Separate read-only, reversible, and high-impact actions. Ask before high-impact steps; open sites in tabs rather than submit data silently.
-- Display the exact action and target before approval. Expire approvals quickly and cancel if the target changes.
-- Keep secrets out of prompts, transcripts, and logs. Do not capture microphone audio until the user explicitly starts listening.
-- Ship with no hidden background recording and no unrestricted “do anything” mode.
+### Supported browser actions
 
-## Suggested build phases
+- Open a fixed list of HTTPS websites and Google search queries.
+- Show and switch among tabs in the current Chrome window.
+- Reload the active tab.
+- Close one active tab only after a confirmation click.
 
-1. **MVP (implemented):** allowlisted browser navigation/search, tab switching/reload, confirmed single-tab close, English/Hindi command entry.
-2. **Chrome companion:** improve voice reliability and add active-tab accessibility actions with per-page confirmation.
-3. **Windows agent:** tray UI, hotkey push-to-talk, app launch and window focus via UI Automation; explicit capability settings.
-4. **Planning and memory:** add an LLM behind the policy broker, task previews, short-lived context, local redacted audit history, and safe recovery/undo.
-5. **Hardening:** signed installer, secure native messaging registration, protocol/version checks, update channel, threat model, manual accessibility testing, and permission review.
+### Supported Windows actions
 
-## GitHub repository setup
+- Open only Notepad, Calculator, and File Explorer.
+- Use fixed Windows shortcuts for show desktop, Alt+Tab, Task Manager, and Snipping Tool.
+- Raise, lower, and toggle mute using Windows media keys.
+- Lock Windows only after a confirmation click.
 
-The prototype is prepared for the connected `Royalabhay/JARVIS` repository on a dedicated feature branch. Review the draft pull request before merging. Do not put provider API keys, transcript samples, or machine-specific paths in source control.
+Free-form shell commands, arbitrary paths, arbitrary coordinates, form submission, password entry, and background recording are intentionally unavailable. This implementation does not use an LLM planner; unknown phrases are rejected instead of guessed.
+
+## Local companion security
+
+- The HTTP listener binds only to IPv4 loopback (`127.0.0.1:43821`). It does not bind to LAN or the public internet.
+- The setup script pins the expected `chrome-extension://<id>` Origin and creates a 256-bit random access token stored under `%LOCALAPPDATA%\SaraVoice`.
+- Each request requires the exact Origin and token. CORS preflight grants only `GET`, `POST`, `OPTIONS`, `Content-Type`, and `X-Sara-Token` for the pinned extension origin.
+- Sara requests `http://127.0.0.1/*` as an optional host permission only when the user saves a desktop token.
+- The server limits request bodies, accepts JSON only, returns no-cache responses, and never logs request bodies or token headers.
+- The companion runs only when the user starts `run_agent.bat`; it has no service, startup task, installer, or hidden listener.
+- To disconnect, remove the token in Sara Settings and close the companion console.
+
+## Trust boundaries and limitations
+
+Chrome's voice recognition can be server-based. Sara does not record or save audio or transcripts, but users should review Chrome's speech and privacy settings; voice recognition may not be available offline. Typed commands work without speech recognition. Spoken replies use the browser's speech synthesizer.
+
+The current version handles a curated set of commands. It is not a general visual agent and cannot inspect arbitrary desktop windows, click arbitrary controls, or infer workflows from page text. To add broader automation safely, a later version should introduce Windows UI Automation with an accessible-control tree, per-action target preview, expiring confirmation, cancellation, audit history, and undo where possible. A model planner should emit validated JSON only and remain separated from the OS adapter.
+
+## Build and release path
+
+1. **This build:** responsive Chrome UI, Hindi/English command phrases, side-panel tab list, fixed Windows app/shortcut actions, local pairing token, approvals, settings, and install documentation.
+2. **UI Automation extension:** accessible control search and action previews for the foreground application; role/name targeting before coordinate fallback.
+3. **Voice and intent improvements:** verify platform speech behavior, support on-device recognition where available, and add an optional model-backed planner with user-managed credentials and strict schema validation.
+4. **Production hardening:** signed Windows installer, managed updates, accessibility and permissions testing, security review, data-retention choices, and end-user documentation.

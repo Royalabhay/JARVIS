@@ -1,17 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Sara Voice Desktop Assistant",
-  "version": "0.1.0",
-  "description": "Voice-first browser control for Chrome with explicit confirmation for destructive actions.",
-  "permissions": [
-    "tabs"
-  ],
-  "background": {
-    "service_worker": "service-worker.js"
-  },
-  "action": {
-    "default_title": "Sara Voice Assistant",
-    "default_popup": "popup.html"
-  }
+  "name": "Sara Voice Assistant",
+  "version": "0.2.0",
+  "minimum_chrome_version": "114",
+  "description": "A voice-first assistant for Chrome and approved Windows desktop actions.",
+  "permissions": ["tabs", "sidePanel", "storage"],
+  "optional_host_permissions": ["http://127.0.0.1/*"],
+  "background": { "service_worker": "service-worker.js" },
+  "side_panel": { "default_path": "popup.html" },
+  "options_page": "options.html",
+  "action": { "default_title": "Open Sara Assistant" }
 }
-
