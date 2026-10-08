@@ -1,0 +1,42 @@
+{
+  "version": "1",
+  "additionalProperties": false,
+  "actions": {
+    "open-site": {"required": ["site"], "fields": {"site": "allowlisted-site"}},
+    "open-url": {"required": ["url"], "fields": {"url": "https-absolute-url"}},
+    "search": {"required": ["query"], "fields": {"query": "text-240"}},
+    "move-tab": {"required": ["direction"], "fields": {"direction": "-1-or-1"}},
+    "switch-tab": {"required": ["tabId"], "fields": {"tabId": "positive-integer", "windowId": "optional-positive-integer"}},
+    "switch-tab-query": {"required": ["query"], "fields": {"query": "text-160"}},
+    "list-tabs": {"required": [], "fields": {}},
+    "reload": {"required": [], "fields": {}},
+    "close-confirm": {"required": [], "fields": {}},
+    "close-confirmed": {"required": [], "fields": {}},
+    "confirm-lock": {"required": [], "fields": {}},
+    "desktop": {"required": ["action"], "fields": {"action": "fixed-system-action"}},
+    "app-open": {"required": ["query"], "fields": {"query": "text-160"}},
+    "app-list": {"required": [], "fields": {}},
+    "file-search": {"required": [], "fields": {"query": "optional-text-160", "scope": "file-scope", "extension": "optional-extension", "latest": "optional-boolean"}},
+    "file-open-name": {"required": ["query"], "fields": {"query": "text-160", "scope": "file-scope"}},
+    "file-open-latest": {"required": ["scope", "extension"], "fields": {"scope": "file-scope", "extension": "extension"}},
+    "file-open": {"required": ["resultId"], "fields": {"resultId": "opaque-result-id"}},
+    "file-reveal": {"required": ["resultId"], "fields": {"resultId": "opaque-result-id"}},
+    "window-list": {"required": [], "fields": {}},
+    "window-focus": {"required": ["windowId"], "fields": {"windowId": "positive-integer"}},
+    "window-focus-query": {"required": ["query"], "fields": {"query": "text-160"}},
+    "window-state": {"required": ["query", "state"], "fields": {"query": "text-160", "state": "minimize-maximize-restore"}},
+    "window-minimize": {"required": ["windowId"], "fields": {"windowId": "positive-integer"}},
+    "window-maximize": {"required": ["windowId"], "fields": {"windowId": "positive-integer"}},
+    "window-restore": {"required": ["windowId"], "fields": {"windowId": "positive-integer"}},
+    "context-read": {"required": [], "fields": {}},
+    "ui-inspect": {"required": [], "fields": {}},
+    "ui-activate": {"required": ["name", "role", "confirmed"], "fields": {"name": "text-180", "role": "allowed-control-role", "confirmed": "boolean; must be true at execution"}}
+  },
+  "security": {
+    "shellExecution": false,
+    "arbitraryPaths": false,
+    "arbitraryCoordinates": false,
+    "uiActivationRequiresConfirmation": true,
+    "fileRoots": ["Desktop", "Documents", "Downloads", "Pictures", "Videos", "Music"]
+  }
+}

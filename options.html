@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sara Settings</title><link rel="stylesheet" href="options.css"></head>
+<body>
+  <main class="settings-shell">
+    <header><a class="brand" href="popup.html"><span class="brand-mark">S</span><span><b>Sara</b><small>VOICE ASSISTANT</small></span></a><span class="eyebrow">SETTINGS</span></header>
+    <section class="intro"><span class="eyebrow">YOUR ASSISTANT, YOUR RULES</span><h1>Connect Sara<br><em>to your computer.</em></h1><p>Set up the optional Windows companion to let Sara open a few approved apps and use helpful shortcuts. Browser controls work without it.</p></section>
+    <section class="card setup-card">
+      <div class="step-title"><span>01</span><div><h2>Install the Windows companion</h2><p>Keep this project folder on your computer. In its folder, open PowerShell and run <code>powershell -NoProfile -ExecutionPolicy Bypass -File .\setup_windows.ps1</code>. Enter the Extension ID shown below. This bypass applies only to setup and does not change your PowerShell policy or install a background service.</p></div></div>
+      <label class="field-label" for="extension-id">Your Chrome Extension ID</label>
+      <div class="copy-field"><input id="extension-id" readonly><button id="copy-id" class="secondary">Copy ID</button></div>
+      <div class="step-title second"><span>02</span><div><h2>Add your local access token</h2><p>Copy the token shown by setup and save it here. Sara checks the local companion from this page first. If Chrome asks to allow Sara to connect to your computer or local network, choose Allow. The token stays in this Chrome extension on this computer.</p></div></div>
+      <label class="field-label" for="token">Windows companion token</label>
+      <div class="copy-field"><input id="token" type="password" placeholder="Paste the token from setup_windows.ps1" autocomplete="off"><button id="show-token" class="secondary">Show</button></div>
+      <div class="settings-actions"><span id="status" role="status">Not connected</span><button id="save" class="primary">Save settings</button></div>
+    </section>
+    <section class="card language-card">
+      <div><span class="eyebrow">VOICE</span><h2>Language & spoken replies</h2><p>Choose the language Sara listens for. Tap the microphone once to start a visible voice session; say “stop listening” to pause it.</p></div>
+      <div class="prefs"><label for="language">Recognition language</label><select id="language"><option value="en-IN">English · India</option><option value="hi-IN">Hindi · हिन्दी</option></select></div>
+      <label class="toggle"><input id="voice-reply" type="checkbox"><span class="toggle-ui"></span><span><b>Speak responses aloud</b><small>Uses your browser’s speech synthesis.</small></span></label>
+    </section>
+    <section class="card permissions-card"><span class="eyebrow">PRIVACY & CONTROL</span><h2>What Sara can do</h2><ul><li>Manage normal Chrome tabs across windows and open approved websites.</li><li>With the Windows companion running: launch Start Menu apps by name, open user folders, search supported document/media files, and switch or manage app windows.</li><li>Inspect accessible UI controls; Sara asks before activating a named control. It asks before locking Windows or closing a tab.</li><li>Never run free-form commands, open arbitrary executable paths, read passwords, submit web forms, or listen in the background.</li></ul><p class="tip">Sara does not save audio or transcripts. Chrome's speech recognition may use a server service, and may not work offline. Check Chrome's speech settings before speaking sensitive information.</p><p class="tip">To turn off desktop access, clear the token here and close the companion window.</p></section>
+    <footer><a href="popup.html">← Back to Sara</a><span>Runs locally on your computer</span></footer>
+  </main><script src="options.js"></script>
+</body>
+</html>

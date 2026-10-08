@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101311">
+  <title>Sara Voice Assistant</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="Sara home">
+        <span class="brand-mark">S</span>
+        <span class="brand-copy"><strong>Sara</strong><small>VOICE ASSISTANT</small></span>
+      </a>
+      <div class="top-actions">
+        <span id="connection" class="connection offline"><i></i><span>DESKTOP OFF</span></span>
+        <button id="settings-open" class="icon-button" aria-label="Open settings" title="Settings">⚙</button>
+      </div>
+    </header>
+
+    <section class="welcome" id="home">
+      <div class="welcome-copy">
+        <div class="eyebrow"><span class="spark">✳</span> READY WHEN YOU ARE</div>
+        <h1>Your day,<br><em>in your hands.</em></h1>
+        <p>Talk to Sara in Hindi or English. Your voice starts each action; sensitive actions ask before they happen.</p>
+      </div>
+      <div class="voice-card">
+        <button id="mic" class="mic" aria-label="Start listening"><span class="mic-symbol">⌁</span><span class="mic-orbit"></span></button>
+        <div class="voice-state"><strong id="mic-label">Tap to start voice control</strong><small id="heard">Then speak commands hands-free · say “stop listening” to pause</small></div>
+        <select id="language" aria-label="Voice language"><option value="en-IN">EN</option><option value="hi-IN">हि</option></select>
+      </div>
+      <div class="composer">
+        <span class="composer-icon">✳</span>
+        <input id="command" type="text" placeholder="Try “Gmail kholo” or “show desktop”…" autocomplete="off" aria-label="Type a command">
+        <button id="send" class="send-button" aria-label="Run command">↗</button>
+      </div>
+      <div id="approval" class="approval hidden" role="dialog" aria-modal="true" aria-labelledby="approval-title">
+        <div class="approval-badge">!</div>
+        <div class="approval-copy"><strong id="approval-title">Confirm this action</strong><p id="approval-text"></p></div>
+        <div class="approval-buttons"><button id="cancel" class="button secondary">Cancel</button><button id="confirm" class="button danger">Confirm</button></div>
+      </div>
+    </section>
+
+    <section class="workspace-grid">
+      <div class="workspace-main">
+        <section class="section-block">
+          <div class="section-heading"><div><span class="eyebrow">QUICK COMMANDS</span><h2>Pick up where you left off</h2></div></div>
+          <div class="quick-grid">
+            <button class="quick-card" data-command="open YouTube"><span class="quick-icon red">▶</span><span><b>Open YouTube</b><small>Jump into videos</small></span><span class="quick-arrow">↗</span></button>
+            <button class="quick-card" data-command="open Gmail"><span class="quick-icon blue">✉</span><span><b>Open Gmail</b><small>Check your inbox</small></span><span class="quick-arrow">↗</span></button>
+            <button class="quick-card" data-command="search for today's news"><span class="quick-icon green">⌕</span><span><b>Search the web</b><small>Ask Sara to look it up</small></span><span class="quick-arrow">↗</span></button>
+            <button class="quick-card" data-command="show desktop"><span class="quick-icon violet">▱</span><span><b>Show desktop</b><small>Minimize open windows</small></span><span class="quick-arrow">↗</span></button>
+          </div>
+        </section>
+
+        <section class="section-block tabs-block">
+          <div class="section-heading"><div><span class="eyebrow">YOUR BROWSER</span><h2>Open tabs <span id="tab-count" class="count">0</span></h2></div><button id="refresh-tabs" class="text-button">Refresh</button></div>
+          <div id="tabs-list" class="tabs-list"><div class="empty-state"><span class="empty-icon">▤</span><p>Open tabs will show here when Sara is open in Chrome.</p></div></div>
+        </section>
+
+        <section class="section-block activity-block">
+          <div class="section-heading"><div><span class="eyebrow">YOUR RECENT ACTIVITY</span><h2>What Sara did</h2></div><button id="clear" class="text-button">Clear</button></div>
+          <div id="log" class="log"><div class="empty-state compact"><p>Your actions will appear here.</p></div></div>
+        </section>
+      </div>
+
+      <aside class="workspace-side">
+        <div class="desktop-card">
+          <div class="desktop-heading"><span class="desktop-icon">⌘</span><div><span class="eyebrow">WINDOWS COMPANION</span><h2>Your computer</h2></div></div>
+          <p>Open everyday apps and use a few helpful Windows shortcuts. Sara only runs named actions you choose.</p>
+          <div class="desktop-actions">
+            <button data-command="open Notepad"><span>▤</span>Notepad<i>↗</i></button>
+            <button data-command="open Calculator"><span>▦</span>Calculator<i>↗</i></button>
+            <button data-command="open Explorer"><span>▰</span>File Explorer<i>↗</i></button>
+            <button data-command="switch window"><span>◫</span>Switch window<i>↗</i></button>
+            <button data-command="volume up"><span>◖</span>Volume up<i>↗</i></button>
+            <button data-command="volume down"><span>◗</span>Volume down<i>↗</i></button>
+          </div>
+          <button data-command="lock computer" class="lock-action"><span>⌑</span>Lock computer<i>›</i></button>
+          <div class="desktop-note"><span>●</span><p>Local Windows actions<br><small>No remote desktop access</small></p></div>
+        </div>
+        <div class="help-card"><span class="help-star">✳</span><strong>Try a natural command</strong><p>“Open Calculator” · “Next tab” · “Search for a good recipe”</p></div>
+      </aside>
+    </section>
+
+    <footer class="footer"><span>Tap the mic to start; say “stop listening” to pause.</span><span>V 0.3</span></footer>
+  </main>
+  <script src="shared/action-schema.js"></script>
+  <script src="shared/planner.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
