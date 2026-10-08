@@ -3,10 +3,15 @@
   "name": "Sara Voice Desktop Assistant",
   "version": "0.1.0",
   "description": "Voice-first browser control for Chrome with explicit confirmation for destructive actions.",
-  "permissions": ["tabs", "storage"],
-  "background": { "service_worker": "service-worker.js" },
+  "permissions": [
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
   "action": {
     "default_title": "Sara Voice Assistant",
     "default_popup": "popup.html"
   }
 }
+
