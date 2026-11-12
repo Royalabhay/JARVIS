@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test:core": "node --test packages/core/tests/*.test.js",
-    "test": "npm run test:core && node --test tests/*.test.js"
+    "test:legacy": "node --test tests/action-schema.test.js tests/planner.test.js",
+    "test": "npm run test:core && npm run test:legacy"
   }
 }
