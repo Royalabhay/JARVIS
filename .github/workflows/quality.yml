@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  core-and-contract-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,4 +18,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --ignore-scripts
-      - run: npm test
+      - name: Run core tests
+        run: npm run test:core
+      - name: Run integration contract tests
+        run: node --test tests/integration/*.test.js
