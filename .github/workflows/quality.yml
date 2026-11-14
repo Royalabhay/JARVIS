@@ -1,0 +1,23 @@
+name: JARVIS Quality Checks
+
+on:
+  push:
+    branches: ["main", "jarvis-os/aws-foundation"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  core-and-contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --ignore-scripts
+      - name: Run core tests
+        run: npm run test:core
+      - name: Run integration contract tests
+        run: node --test tests/integration/*.test.js
